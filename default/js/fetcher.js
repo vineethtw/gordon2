@@ -9,8 +9,9 @@ function TweetFetcher(url)    {
         });
     };
 
-    self.fetchSince = function(callback, sinceId) {
-            $.getJSON(self.url + String.format("?since={0}", sinceId) , function(data) {
+    self.fetchSince = function(sinceId, callback) {
+            var urlToFire = String.format("{0}?since={1}", self.url, sinceId);
+            $.getJSON(urlToFire, function(data) {
                 callback(data);
             });
         };

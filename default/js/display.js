@@ -20,20 +20,39 @@ function Tweets(tweetJSON)   {
     var self = this;
     self._tweets = [];
     self._currentProcessingLevel = 0;
+    self.maxTweetId = 0;
 
-    $.each(tweetJSON,
-        function (index, tweet) {
-        self._tweets.push(
-            new Tweet(
-                tweet["id"],
-                tweet["message"],
-                tweet["profile_image_uri"],
-                tweet["profile_image_uri_small"],
-                tweet["media_uris"],
-                tweet['user']
-            )
-        );
-    });
+    self.addToTweets = function(tweetCollection){
+        $.each(tweetCollection,
+                function (index, tweet) {
+                    /* Store Maximum Tweet Id for future requests */
+                    var tweetId = parseInt(tweet["id"]);
+                    if (tweetId > self.maxTweetId){
+                        self.maxTweetId = tweetId;
+                    }
+                    /*Create Tweet objects */
+                    self._tweets.push(
+                        new Tweet(
+                            tweet["id"],
+                            tweet["message"],
+                            tweet["profile_image_uri"],
+                            tweet["profile_image_uri_small"],
+                            tweet["media_uris"],
+                            tweet['user']
+                        )
+                    );
+            });
+    };
+
+    self.addToTweets(tweetJSON);
+
+    self.updateWith = function(newTweetObjects) {
+        if (newTweetObjects == null || newTweetObjects.length == 0) {
+            return;
+        }
+        self.addToTweets(newTweetObjects);
+        self._currentProcessingLevel = 0;
+    };
 
     self.getProfileImages = function()   {
         var profileImages = $.map(self._tweets, function(tweet, i){
@@ -86,8 +105,7 @@ function fetchTweetsAndDisplay() {
             backgroundContainer.addImage(profileImage);
         });
         backgroundContainer.show();
-        var display = new Display();
-
+        var display = new Display(fetcher);
         window.setInterval(function(){
             display.nextFrom(tweets);
         }, 10000);
@@ -95,14 +113,24 @@ function fetchTweetsAndDisplay() {
     });
 };
 
-function Display() {
+function Display(fetcher) {
     var self = this;
     var source = $("#tweet-message-template").html();
     var clouds = $("#clouds");
+
+    self.fetcher = fetcher;
+
     self.template = Handlebars.compile(source);
 
     self.nextFrom = function(tweetsCollection){
         var tweet = tweetsCollection.getATweet();
+
+        if (tweetsCollection.shouldRefill()){
+            self.fetcher.fetchSince(tweetsCollection.maxTweetId, function(newTweets){
+                tweetsCollection.updateWith(newTweets);
+            });
+        }
+
         self.show(tweet);
     };
 
