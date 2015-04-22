@@ -18,9 +18,8 @@ function ProfileImage (id, url){
     };
 
     self.jQueryObject = function()  {
-        return $("#"+id);
+        return $("#"+id)[0];
     };
-
 };
 
 function ImageRepository(pictureArray) {

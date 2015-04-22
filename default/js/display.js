@@ -2,18 +2,36 @@ function BackgroundContainer(id, elementToHold){
     var self = this;
     self.id = id;
     self.container = $(id);
-    self.images = [];
+
+    self.packery = self.container.packery({'itemSelector': elementToHold, 'gutter': 5});
 
     self.addImage = function(i)   {
         self.container.append(i.html());
-        self.images.push(i);
-    };
-
-    self.show = function()  {
         self.container.imagesLoaded(function(){
-            self.container.packery({'itemSelector': elementToHold, 'gutter': 5});
+            self.container.packery('appended', [i.jQueryObject()]);
         });
     };
+
+    /* Might be removed */
+    self.updatePictureWall = function(tweetObjects){
+        var sortedTweetObjects = _.sortBy(tweetObjects._tweets, function(tweetObject){
+            return tweetObject.processedCount;
+        });
+        var uniqueTweets = _.uniq(sortedTweetObjects, false, function(t){
+            return t.profile_image;
+        });
+        var filteredList = _.first(uniqueTweets, 20);
+
+        $.each(filteredList, function(i, twit){
+            self.addImage(twit.getProfileImage());
+        });
+    };
+
+    self.clear = function() {
+        self.container.packery('remove', $(elementToHold));
+    };
+
+    /* End */
 };
 
 function Tweets(tweetJSON)   {
@@ -52,13 +70,6 @@ function Tweets(tweetJSON)   {
         }
         self.addToTweets(newTweetObjects);
         self._currentProcessingLevel = 0;
-    };
-
-    self.getProfileImages = function()   {
-        var profileImages = $.map(self._tweets, function(tweet, i){
-            return new ProfileImage("img_"+ tweet.id, tweet.profile_image)
-        });
-        return profileImages;
     };
 
     self.getLastTweetId = function()    {
@@ -100,12 +111,14 @@ function fetchTweetsAndDisplay() {
 
     var tweets = null;
     fetcher.fetch(function(data)    {
+
         tweets = new Tweets(data);
-        $.each(tweets.getProfileImages(), function(i, profileImage){
-            backgroundContainer.addImage(profileImage);
-        });
-        backgroundContainer.show();
+
+
+        backgroundContainer.updatePictureWall(tweets);
+
         var display = new Display(fetcher);
+
         window.setInterval(function(){
             display.nextFrom(tweets);
         }, 10000);
