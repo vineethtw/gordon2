@@ -19,6 +19,8 @@ function BackgroundContainer(id, elementToHold){
 function Tweets(tweetJSON)   {
     var self = this;
     self._tweets = [];
+    self._currentProcessingLevel = 0;
+
     $.each(tweetJSON,
         function (index, tweet) {
         self._tweets.push(
@@ -45,12 +47,26 @@ function Tweets(tweetJSON)   {
     };
 
     self.getATweet = function() {
+        var nextTweet = self.getTweetForCurrentProcessingLevel();
+        if (nextTweet == null)   {
+            self._currentProcessingLevel = self._currentProcessingLevel + 1;
+            nextTweet = self.getTweetForCurrentProcessingLevel();
+        }
+        nextTweet.process();
+        return nextTweet;
+    };
+
+    self.getTweetForCurrentProcessingLevel = function (){
         var unprocessedTweet = _.find(self._tweets, function(t){
-            return t.processedCount == 0;
+            return t.processedCount == self._currentProcessingLevel;
         });
-        unprocessedTweet.process();
         return unprocessedTweet;
     };
+
+    self.shouldRefill = function()  {
+        return self._currentProcessingLevel != 0;
+    };
+
 };
 
 $(document).ready(function() {
@@ -71,10 +87,11 @@ function fetchTweetsAndDisplay() {
         });
         backgroundContainer.show();
         var display = new Display();
+
         window.setInterval(function(){
-            var tweetToShow = tweets.getATweet();
-            display.withTweet(tweetToShow);
+            display.nextFrom(tweets);
         }, 10000);
+
     });
 };
 
@@ -84,7 +101,12 @@ function Display() {
     var clouds = $("#clouds");
     self.template = Handlebars.compile(source);
 
-    self.withTweet = function(tweet){
+    self.nextFrom = function(tweetsCollection){
+        var tweet = tweetsCollection.getATweet();
+        self.show(tweet);
+    };
+
+    self.show = function(tweet){
         clouds.empty();
         var modalTemplate = self.template(tweet);
         clouds.append($(modalTemplate));
