@@ -16,19 +16,6 @@ function BackgroundContainer(id, elementToHold){
     };
 };
 
-function Tweet(id, message, profile_image, media_url, user){
-    var self = this;
-    self.id = id;
-    self.message = message;
-    self.profile_image = profile_image;
-    self.media_url = null;
-
-    if (media_url !=null && media_url.length>=1){
-        self.media_url = media_url[0];
-    }
-    self.user = user;
-}
-
 function Tweets(tweetJSON)   {
     var self = this;
     self._tweets = [];
@@ -39,6 +26,7 @@ function Tweets(tweetJSON)   {
                 tweet["id"],
                 tweet["message"],
                 tweet["profile_image_uri"],
+                tweet["profile_image_uri_small"],
                 tweet["media_uris"],
                 tweet['user']
             )
@@ -57,10 +45,13 @@ function Tweets(tweetJSON)   {
     };
 
     self.getATweet = function() {
-        return self._tweets[0];
+        var unprocessedTweet = _.find(self._tweets, function(t){
+            return t.processedCount == 0;
+        });
+        unprocessedTweet.process();
+        return unprocessedTweet;
     };
 };
-
 
 $(document).ready(function() {
     console.log("Ready");
@@ -79,23 +70,34 @@ function fetchTweetsAndDisplay() {
             backgroundContainer.addImage(profileImage);
         });
         backgroundContainer.show();
-        window.setInterval(function(){
-            var tweet = tweets.getATweet();
-            display(tweet);
-        }, 10000);
+        var display = new Display();
+        /*window.setInterval(function(){
+            var tweetToShow = tweets.getATweet();
+            display.withTweet(tweetToShow);
+        }, 10000);*/
     });
 };
 
-function display(tweet) {
-    var modal = new jBox('Modal', {content: tweet.message});
-    modal.open();
+function Display() {
+    var self = this;
+    var source   = $("#tweet-modal-template").html();
+    self.template = Handlebars.compile(source);
 
+    self.modal = new jBox('Modal', {});
+
+    self.withTweet = function(tweet){
+        self.modal.close();
+        var modalTemplate = self.template(tweet);
+        self.modal = new jBox('Modal', {
+            content: $(modalTemplate)
+        });
+        self.modal.open();
+    };
 }
 
 function updateOnceMore(tweets)   {
     var fetcher = new TweetFetcher('http://localhost:3000/tweets/fetch');
     fetcher.fetchSince(function(data){
         var newTweets = new Tweets(data);
-
     }, tweets.getLastTweetId());
 }

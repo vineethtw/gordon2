@@ -3,11 +3,28 @@
 <html>
     <head>
         <link rel="stylesheet" type="text/css" href="css/display.css">
+        <link rel="stylesheet" type="text/css" href="css/tweet.css">
+        <link rel="stylesheet" type="text/css" href="css/movingclouds.css">
+
+        <script id="tweet-modal-template" type="text/x-handlebars-template">
+            <div id="tweetModal">
+                <div id="tweetProfilePicture">
+                    <img class="modalProfilePicture" src="{{profile_image_small}}"/>
+                    <h2>{{user}} </h2>
+                </div>
+                <div id="tweetText">
+                    {{message}}
+                </div>
+            </div>
+        </script>
 
         <script src="js/tools/jquery-1.11.2.js"></script>
         <script src="js/tools/packery.pkgd.js"></script>
         <script src="js/tools/imagesloaded.pkgd.js"></script>
         <script src="js/tools/jBox.js"></script>
+        <script src="js/tools/handlebars-v3.0.1.js"></script>
+        <script src="js/tools/underscore.js"></script>
+
 
         <script src="js/tools/utils.js"></script>
         <script src="js/image.js"></script>
@@ -16,8 +33,16 @@
         <script src="js/display.js"></script>
 
 
+
+
     </head>
     <body>
-        <div id="backgroundContainer" class="packery"></div>
+        <div id="backgroundContainer" class="packery">
+
+        </div>
+        <div id="clouds">
+            <div id="tweetMessage">Why do so many people start their messages with, "It's me"? Of course it is you. We all know that. But who the hell ARE you? - Dexter Morgan</div>
+
+        </div>
     </body>
 </html>

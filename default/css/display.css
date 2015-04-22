@@ -1,7 +1,28 @@
 .profilePicture{
-    width: 250px;
+    width: 200px;
+    border-radius: 5px;
+}
+
+body{
+    background-color: #289EFF;
+    overflow: hidden;
 }
 
 .packery {
+    background-color: #289EFF;
     margin-left: 30px;
+    margin-top: 40px;
 }
+
+div#tweetModal {
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(99,182,219,1)), color-stop(100%,rgba(48,157,207,1)));
+    color: black;
+    font-size: 26pt;
+    font-family: Helvetica, Arial, Sans-Serif;
+    max-width: 500px;
+    padding:30px;
+    border-radius: 5px 20px;
+}
+
+
+

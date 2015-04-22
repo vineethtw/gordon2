@@ -1,0 +1,11 @@
+div#tweetMessage{
+  font-family: Arial;
+  font-size: 26pt;
+  font-weight: bolder;
+  bottom: 10pt;
+  position: absolute;
+  width:60%;
+  margin-left: 30pt;
+  right: 40pt;
+  color: darkslategrey;
+}
