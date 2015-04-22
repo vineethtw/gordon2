@@ -6,15 +6,18 @@
         <link rel="stylesheet" type="text/css" href="css/tweet.css">
         <link rel="stylesheet" type="text/css" href="css/movingclouds.css">
 
-        <script id="tweet-modal-template" type="text/x-handlebars-template">
-            <div id="tweetModal">
-                <div id="tweetProfilePicture">
-                    <img class="modalProfilePicture" src="{{profile_image_small}}"/>
-                    <h2>{{user}} </h2>
-                </div>
-                <div id="tweetText">
-                    {{message}}
-                </div>
+        <script id="tweet-message-template" type="text/x-handlebars-template">
+            <span>
+                    <div id="tweetImage">
+                        <img src="{{profile_image}}"/>
+                    </div>
+                </span>
+            <div id="tweetMessage">
+                <span>
+                    <div>
+                        {{message}}
+                    </div>
+                </span>
             </div>
         </script>
 
@@ -41,7 +44,7 @@
 
         </div>
         <div id="clouds">
-            <div id="tweetMessage">Why do so many people start their messages with, "It's me"? Of course it is you. We all know that. But who the hell ARE you? - Dexter Morgan</div>
+
 
         </div>
     </body>

@@ -71,27 +71,23 @@ function fetchTweetsAndDisplay() {
         });
         backgroundContainer.show();
         var display = new Display();
-        /*window.setInterval(function(){
+        window.setInterval(function(){
             var tweetToShow = tweets.getATweet();
             display.withTweet(tweetToShow);
-        }, 10000);*/
+        }, 10000);
     });
 };
 
 function Display() {
     var self = this;
-    var source   = $("#tweet-modal-template").html();
+    var source = $("#tweet-message-template").html();
+    var clouds = $("#clouds");
     self.template = Handlebars.compile(source);
 
-    self.modal = new jBox('Modal', {});
-
     self.withTweet = function(tweet){
-        self.modal.close();
+        clouds.empty();
         var modalTemplate = self.template(tweet);
-        self.modal = new jBox('Modal', {
-            content: $(modalTemplate)
-        });
-        self.modal.open();
+        clouds.append($(modalTemplate));
     };
 }
 
