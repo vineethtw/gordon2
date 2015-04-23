@@ -14,16 +14,25 @@ function BackgroundContainer(id, elementToHold){
 
     /* Might be removed */
     self.updatePictureWall = function(tweetObjects){
+        self.clear();
         var sortedTweetObjects = _.sortBy(tweetObjects._tweets, function(tweetObject){
             return tweetObject.processedCount;
         });
         var uniqueTweets = _.uniq(sortedTweetObjects, false, function(t){
             return t.profile_image;
         });
+
+        var grouped = _.groupBy(sortedTweetObjects, function(tweetObject){
+            return tweetObject.profile_image;
+        });
+
         var filteredList = _.first(uniqueTweets, 20);
 
         $.each(filteredList, function(i, twit){
-            self.addImage(twit.getProfileImage());
+            if (grouped[twit.profile_image].length>1)
+                self.addImage(twit.getProfileImage('bigger'));
+            else
+                self.addImage(twit.getProfileImage('usual'));
         });
     };
 
@@ -117,7 +126,7 @@ function fetchTweetsAndDisplay() {
 
         backgroundContainer.updatePictureWall(tweets);
 
-        var display = new Display(fetcher);
+        var display = new Display(fetcher, backgroundContainer);
 
         window.setInterval(function(){
             display.nextFrom(tweets);
@@ -126,7 +135,7 @@ function fetchTweetsAndDisplay() {
     });
 };
 
-function Display(fetcher) {
+function Display(fetcher, backgroundContainer) {
     var self = this;
     var source = $("#tweet-message-template").html();
     var clouds = $("#clouds");

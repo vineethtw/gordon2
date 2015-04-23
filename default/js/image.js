@@ -1,11 +1,12 @@
-function ProfileImage (id, url){
+function ProfileImage (id, url, size){
     var self = this;
 
     self.id = id;
     self.url = url;
+    self.size = size;
 
     self.html = function()  {
-        var html = String.format('<img id="{0}" src="{1}" class="profilePicture"/>', self.id, self.url);
+        var html = String.format('<img id="{0}" src="{1}" class="profilePicture {2}"/>', self.id, self.url, self.size);
         return html;
     };
 

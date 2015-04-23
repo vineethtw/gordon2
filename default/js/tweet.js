@@ -16,7 +16,7 @@ function Tweet(id, message, profile_image, profile_image_small, media_url, user)
         self.processedCount = self.processedCount + 1;
     };
 
-    self.getProfileImage = function() {
-        return new ProfileImage("img_"+ self.id, self.profile_image)
+    self.getProfileImage = function(size) {
+        return new ProfileImage("img_"+ self.id, self.profile_image, size)
     };
 }

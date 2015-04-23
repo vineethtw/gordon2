@@ -1,5 +1,10 @@
-.profilePicture{
-    width: 200px;
+.usual{
+    width: 150px;
+    border-radius: 5px;
+}
+
+.bigger{
+    width: 300px;
     border-radius: 5px;
 }
 
