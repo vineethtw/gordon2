@@ -1,5 +1,6 @@
 function Tweet(id, message, profile_image, profile_image_small, media_url, user) {
     var self = this;
+
     self.id = id;
     self.message = message;
     self.profile_image = profile_image;

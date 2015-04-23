@@ -26,10 +26,12 @@ function BackgroundContainer(id, elementToHold){
             return tweetObject.profile_image;
         });
 
+        var mostTweets = _.uniq(_.sortBy(_.map(_.values(grouped), function(a) {return a.length;})), true);
+
         var filteredList = _.first(uniqueTweets, 20);
 
         $.each(filteredList, function(i, twit){
-            if (grouped[twit.profile_image].length>1)
+            if (mostTweets != null && mostTweets.length > 1 && grouped[twit.profile_image].length == _.last(mostTweets))
                 self.addImage(twit.getProfileImage('bigger'));
             else
                 self.addImage(twit.getProfileImage('usual'));
@@ -74,7 +76,7 @@ function Tweets(tweetJSON)   {
     self.addToTweets(tweetJSON);
 
     self.updateWith = function(newTweetObjects) {
-        if (newTweetObjects == null || newTweetObjects.length == 0) {
+        if (newTweetObjects == null) {
             return;
         }
         self.addToTweets(newTweetObjects);
@@ -86,13 +88,26 @@ function Tweets(tweetJSON)   {
     };
 
     self.getATweet = function() {
+        if (_.isEmpty(self._tweets))    {
+            return console.log("No tweets. What do I get from where?");
+        }
+
         var nextTweet = self.getTweetForCurrentProcessingLevel();
+
         if (nextTweet == null)   {
-            self._currentProcessingLevel = self._currentProcessingLevel + 1;
+            self._currentProcessingLevel = self.getNextProcessingLevelFromExistingTweets();
             nextTweet = self.getTweetForCurrentProcessingLevel();
         }
+
         nextTweet.process();
         return nextTweet;
+    };
+
+    self.getNextProcessingLevelFromExistingTweets = function(){
+        var leastProcessedTweet = _.min(self._tweets, function(t){
+            return t.processedCount;
+        });
+        return leastProcessedTweet.processedCount;
     };
 
     self.getTweetForCurrentProcessingLevel = function (){
@@ -102,8 +117,12 @@ function Tweets(tweetJSON)   {
         return unprocessedTweet;
     };
 
+    self.noTweetsToSpeakOf = function() {
+        return self._tweets == null || _.isEmpty(self._tweets);
+    };
+
     self.shouldRefill = function()  {
-        return self._currentProcessingLevel != 0;
+        return self._currentProcessingLevel != 0 || self.noTweetsToSpeakOf() ;
     };
 
 };
@@ -115,7 +134,7 @@ $(document).ready(function() {
 
 
 function fetchTweetsAndDisplay() {
-    var fetcher = new TweetFetcher('http://localhost:3000/tweets/fetch');
+    var fetcher = new TweetFetcher('http://localhost:4567/search');
     var backgroundContainer = new BackgroundContainer("#backgroundContainer", '.profilePicture');
 
     var tweets = null;
@@ -148,7 +167,7 @@ function Display(fetcher, backgroundContainer) {
         var tweet = tweetsCollection.getATweet();
 
         if (tweetsCollection.shouldRefill()){
-            self.fetcher.fetchSince(tweetsCollection.maxTweetId, function(newTweets){
+            self.fetcher.fetchSince(tweetsCollection.maxTweetId + 1, function(newTweets){
                 tweetsCollection.updateWith(newTweets);
             });
         }
@@ -161,11 +180,4 @@ function Display(fetcher, backgroundContainer) {
         var modalTemplate = self.template(tweet);
         clouds.append($(modalTemplate));
     };
-}
-
-function updateOnceMore(tweets)   {
-    var fetcher = new TweetFetcher('http://localhost:3000/tweets/fetch');
-    fetcher.fetchSince(function(data){
-        var newTweets = new Tweets(data);
-    }, tweets.getLastTweetId());
 }
