@@ -4,17 +4,33 @@ function BackgroundContainer(id, elementToHold){
     self.container = $(id);
 
     self.packery = self.container.packery({'itemSelector': elementToHold, 'gutter': 5});
+    self.pictures = [];
+
 
     self.addImage = function(i)   {
         self.container.append(i.html());
         self.container.imagesLoaded(function(){
             self.container.packery('appended', [i.jQueryObject()]);
+            self.pictures.push(i);
+        });
+    };
+
+    self.clearUpSomeOldImages = function(currentTweets, count) {
+        if (_.isEmpty(currentTweets._tweets) || count == 0){
+            return;
+        }
+
+        var profileImages = _.first(self.pictures, count);
+        collections.splice(self.pictures, 0, pictures.count);
+
+        _.each(profileImages, function(profileImage){
+            self.container.packery('remove', profileImage.jQueryObject());
         });
     };
 
     /* Might be removed */
     self.updatePictureWall = function(tweetObjects){
-        self.clear();
+
         var sortedTweetObjects = _.sortBy(tweetObjects._tweets, function(tweetObject){
             return tweetObject.processedCount;
         });
@@ -50,26 +66,37 @@ function Tweets(tweetJSON)   {
     self._tweets = [];
     self._currentProcessingLevel = 0;
     self.maxTweetId = 0;
+    self.lastTweetCameInAt  = null;
+    self.lastTweetThatCameIn = null;
+
+
+    self.maxTweetId = function(){
+        if (self.lastTweetThatCameIn == null)
+        {
+            return 0;
+        }
+        return self.lastTweetThatCameIn.id;
+    }
 
     self.addToTweets = function(tweetCollection){
         $.each(tweetCollection,
                 function (index, tweet) {
-                    /* Store Maximum Tweet Id for future requests */
-                    var tweetId = parseInt(tweet["id"]);
-                    if (tweetId > self.maxTweetId){
-                        self.maxTweetId = tweetId;
-                    }
                     /*Create Tweet objects */
-                    self._tweets.push(
-                        new Tweet(
-                            tweet["id"],
-                            tweet["message"],
-                            tweet["profile_image_uri"],
-                            tweet["profile_image_uri_small"],
-                            tweet["media_uris"],
-                            tweet['user']
-                        )
-                    );
+                    var tweetObject = new Tweet(tweet["id"],
+                                          tweet["message"],
+                                          tweet["profile_image_uri"],
+                                          tweet["profile_image_uri_small"],
+                                          tweet["media_uris"],
+                                          tweet['user_id']
+                                        );
+                    self._tweets.push(tweetObject);
+
+                    if (self.lastTweetThatCameIn == null  || new Date(tweet["created_at"]) > self.lastTweetCameInAt)
+                    {
+                        self.lastTweetThatCameIn = tweetObject;
+                        self.lastTweetCameInAt = new Date(tweet["created_at"]);
+                    }
+
             });
     };
 
@@ -134,21 +161,23 @@ $(document).ready(function() {
 
 
 function fetchTweetsAndDisplay() {
+    var self = this;
     var fetcher = new TweetFetcher('http://localhost:4567/search');
-    var backgroundContainer = new BackgroundContainer("#backgroundContainer", '.profilePicture');
+    self.backgroundContainer = new BackgroundContainer("#backgroundContainer", '.profilePicture');
 
     var tweets = null;
+
     fetcher.fetch(function(data)    {
 
         tweets = new Tweets(data);
 
-
-        backgroundContainer.updatePictureWall(tweets);
+        self.backgroundContainer.clear();
+        self.backgroundContainer.updatePictureWall(tweets);
 
         var display = new Display(fetcher, backgroundContainer);
 
         window.setInterval(function(){
-            display.nextFrom(tweets);
+            var tweet = display.nextFrom(tweets);
         }, 10000);
 
     });
@@ -156,6 +185,7 @@ function fetchTweetsAndDisplay() {
 
 function Display(fetcher, backgroundContainer) {
     var self = this;
+    self.backgroundContainer = backgroundContainer;
     var source = $("#tweet-message-template").html();
     var clouds = $("#clouds");
 
@@ -167,12 +197,14 @@ function Display(fetcher, backgroundContainer) {
         var tweet = tweetsCollection.getATweet();
 
         if (tweetsCollection.shouldRefill()){
-            self.fetcher.fetchSince(tweetsCollection.maxTweetId + 1, function(newTweets){
+            self.fetcher.fetchSince(tweetsCollection.maxTweetId(), function(newTweets){
+                self.backgroundContainer.clearUpSomeOldImages(tweetsCollection, newTweets.length);
                 tweetsCollection.updateWith(newTweets);
             });
         }
 
         self.show(tweet);
+        return tweet;
     };
 
     self.show = function(tweet){

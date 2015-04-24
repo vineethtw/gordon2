@@ -1,4 +1,4 @@
-function Tweet(id, message, profile_image, profile_image_small, media_url, user) {
+function Tweet(id, message, profile_image, profile_image_small, media_url, userId) {
     var self = this;
 
     self.id = id;
@@ -7,7 +7,7 @@ function Tweet(id, message, profile_image, profile_image_small, media_url, user)
     self.profile_image_small = profile_image_small,
     self.media_url = null;
     self.processedCount = 0;
-    self.user = user;
+    self.userId = userId;
 
     if (media_url !=null && media_url.length>=1) {
         self.media_url = media_url[0];
@@ -18,6 +18,6 @@ function Tweet(id, message, profile_image, profile_image_small, media_url, user)
     };
 
     self.getProfileImage = function(size) {
-        return new ProfileImage("img_"+ self.id, self.profile_image, size)
+        return new ProfileImage("img_"+ self.userId, self.profile_image, size)
     };
 }
